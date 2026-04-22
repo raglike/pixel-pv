@@ -1,0 +1,19 @@
+{
+  "name": "pixel-pv",
+  "version": "1.0.0",
+  "description": "A simplified game PV creation tool with PixiJS and GSAP",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "pixi.js": "^8.6.6",
+    "gsap": "^3.12.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^6.0.7"
+  }
+}

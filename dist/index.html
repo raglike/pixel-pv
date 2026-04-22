@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixel PV Tool - 游戏PV制作工具</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    #app {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+      padding: 12px 24px;
+      border-bottom: 1px solid #0f3460;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      background: linear-gradient(90deg, #00d9ff, #00ff88);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: 220px 1fr 280px;
+      gap: 16px;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .panel {
+      background: #16213e;
+      border-radius: 12px;
+      border: 1px solid #0f3460;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .panel-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #00d9ff;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Template Cards */
+    .template-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .template-card {
+      background: linear-gradient(145deg, #1a1a2e, #0f3460);
+      border: 2px solid transparent;
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .template-card:hover {
+      border-color: #00d9ff;
+      transform: translateY(-2px);
+    }
+
+    .template-card.active {
+      border-color: #00ff88;
+      background: linear-gradient(145deg, #0f3460, #1a1a2e);
+    }
+
+    .template-card .icon {
+      font-size: 1.8rem;
+      margin-bottom: 6px;
+    }
+
+    .template-card .name {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .template-card .desc {
+      font-size: 0.7rem;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    /* Preview Canvas */
+    .preview-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #0a0a1a;
+      border-radius: 12px;
+      border: 1px solid #0f3460;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #pixi-canvas {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 4px;
+    }
+
+    .preview-label {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      font-size: 0.7rem;
+      color: #00d9ff;
+      background: rgba(0,0,0,0.5);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    /* Controls Panel */
+    .control-group {
+      margin-bottom: 16px;
+    }
+
+    .control-group label {
+      display: block;
+      font-size: 0.75rem;
+      color: #888;
+      margin-bottom: 6px;
+    }
+
+    .control-group input[type="text"],
+    .control-group input[type="number"] {
+      width: 100%;
+      background: #0a0a1a;
+      border: 1px solid #0f3460;
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: #e0e0e0;
+      font-size: 0.9rem;
+    }
+
+    .control-group input:focus {
+      outline: none;
+      border-color: #00d9ff;
+    }
+
+    .color-input-wrapper {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .color-input-wrapper input[type="color"] {
+      width: 40px;
+      height: 36px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: none;
+    }
+
+    .color-input-wrapper input[type="text"] {
+      flex: 1;
+    }
+
+    .slider-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .slider-wrapper input[type="range"] {
+      flex: 1;
+      height: 4px;
+      background: #0f3460;
+      border-radius: 2px;
+      appearance: none;
+    }
+
+    .slider-wrapper input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      background: #00d9ff;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .slider-wrapper span {
+      font-size: 0.8rem;
+      min-width: 36px;
+      text-align: right;
+    }
+
+    /* Footer Controls */
+    footer {
+      background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+      padding: 12px 24px;
+      border-top: 1px solid #0f3460;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #00d9ff, #00ff88);
+      color: #1a1a2e;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
+    }
+
+    .btn-secondary {
+      background: #0f3460;
+      color: #e0e0e0;
+    }
+
+    .btn-secondary:hover {
+      background: #1a4a7a;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Animation indicator */
+    .anim-status {
+      font-size: 0.8rem;
+      color: #888;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .anim-status .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #00ff88;
+    }
+
+    .anim-status.playing .dot {
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/index-D8crto4r.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>Pixel PV Tool</h1>
+      <span style="color: #666; font-size: 0.8rem;">游戏PV制作工具</span>
+    </header>
+
+    <div class="main-content">
+      <!-- Left: Template Selection -->
+      <div class="panel template-panel">
+        <div class="panel-title">模板选择</div>
+        <div class="template-grid" id="template-grid">
+          <div class="template-card" data-template="battle">
+            <div class="icon">⚔️</div>
+            <div class="name">战场 Battle</div>
+            <div class="desc">热血战斗风格</div>
+          </div>
+          <div class="template-card" data-template="cyber">
+            <div class="icon">🌃</div>
+            <div class="name">赛博 Cyber</div>
+            <div class="desc">未来科技感</div>
+          </div>
+          <div class="template-card" data-template="adventure">
+            <div class="icon">🗺️</div>
+            <div class="name">冒险 Adventure</div>
+            <div class="desc">探索未知世界</div>
+          </div>
+          <div class="template-card" data-template="minimal">
+            <div class="icon">◼️</div>
+            <div class="name">极简 Minimal</div>
+            <div class="desc">简约大气</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: Preview -->
+      <div class="preview-container">
+        <span class="preview-label">PREVIEW</span>
+        <canvas id="pixi-canvas"></canvas>
+      </div>
+
+      <!-- Right: Controls -->
+      <div class="panel control-panel">
+        <div class="panel-title">参数控制</div>
+
+        <div class="control-group">
+          <label>主标题文字</label>
+          <input type="text" id="text-input" value="PIXEL PV" placeholder="输入文字...">
+        </div>
+
+        <div class="control-group">
+          <label>字体大小</label>
+          <div class="slider-wrapper">
+            <input type="range" id="font-size" min="24" max="120" value="64">
+            <span id="font-size-val">64px</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>动画速度</label>
+          <div class="slider-wrapper">
+            <input type="range" id="anim-speed" min="0.1" max="3" step="0.1" value="1">
+            <span id="anim-speed-val">1x</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>主色调</label>
+          <div class="color-input-wrapper">
+            <input type="color" id="primary-color" value="#00d9ff">
+            <input type="text" id="primary-color-text" value="#00d9ff">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>副色调</label>
+          <div class="color-input-wrapper">
+            <input type="color" id="secondary-color" value="#00ff88">
+            <input type="text" id="secondary-color-text" value="#00ff88">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>描边颜色</label>
+          <div class="color-input-wrapper">
+            <input type="color" id="stroke-color" value="#000000">
+            <input type="text" id="stroke-color-text" value="#000000">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>描边宽度</label>
+          <div class="slider-wrapper">
+            <input type="range" id="stroke-width" min="0" max="10" value="3">
+            <span id="stroke-width-val">3px</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="anim-status" id="anim-status">
+        <span class="dot"></span>
+        <span id="anim-status-text">暂停</span>
+      </div>
+      <button class="btn btn-primary" id="btn-play">▶ 播放</button>
+      <button class="btn btn-secondary" id="btn-pause">⏸ 暂停</button>
+      <button class="btn btn-secondary" id="btn-export">📷 导出PNG</button>
+    </footer>
+  </div>
+
+</body>
+</html>
